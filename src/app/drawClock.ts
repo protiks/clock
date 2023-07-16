@@ -12,6 +12,7 @@ const drawClock = (p: p5, centerX: number, centerY: number) => {
 
     let r = p.width * 0.5;
 
+    // Draw the clock elements
     p.stroke(0);
     p.strokeWeight(2);
     p.fill(255);

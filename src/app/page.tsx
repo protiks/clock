@@ -1,19 +1,11 @@
 'use client'
-import React, { useEffect, useState } from 'react';
-import p5, { Color } from 'p5';
-import Sketch from './engine';
+import React from "react";
+
+import { NextReactP5Wrapper } from "@p5-wrapper/next";
+import Sketch from "./sketch";
 
 export default function Home() {
-
-  setTimeout(() => {
-  }, 1500)
-
-  useEffect(() => {
-    const clock = new p5((p: p5) => Sketch(p));
-
-    return () => {
-      clock.remove();
-    };
-  }, []);
+  return (
+    <NextReactP5Wrapper sketch={Sketch} />
+  )
 }
-
