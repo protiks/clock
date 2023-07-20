@@ -24,12 +24,19 @@ class Clock implements IClock {
     private static SECONDS_PER_MINUTE = 60;
     private static DEGREES_PER_CIRCLE = 360;
 
+
     draw(p: p5, currentTime: Date) {
         const hours = currentTime.getHours();
         const minutes = currentTime.getMinutes();
         const seconds = currentTime.getSeconds();
 
-        const hourAngle = p.map(hours % Clock.HOURS_PER_DAY, 0, Clock.HOURS_PER_DAY, 0, Clock.DEGREES_PER_CIRCLE);
+        const hourAngle = p.map(
+            hours % Clock.HOURS_PER_DAY + minutes / Clock.MINUTES_PER_HOUR,
+            0,
+            Clock.HOURS_PER_DAY,
+            0,
+            Clock.DEGREES_PER_CIRCLE
+        );
         const minuteAngle = p.map(minutes, 0, Clock.MINUTES_PER_HOUR, 0, Clock.DEGREES_PER_CIRCLE);
         const targetSecondAngle = seconds * (Clock.DEGREES_PER_CIRCLE / Clock.SECONDS_PER_MINUTE);
 
@@ -53,14 +60,28 @@ class Clock implements IClock {
             r = p.width * 0.95 // You can adjust the multiplier as needed
         }
 
-
-
-
         // Draw the clock elements
+        p.fill('white')
         this.drawClockFace(p, r);
         this.hourHand.draw(p, hourAngle, r);
         this.minuteHand.draw(p, minuteAngle, r);
-        this.secondHand.draw(p, secondAngle, r);
+
+        // Draw the second hand at the edge of the clock
+        const secondHandX = r * p.cos(p.radians(secondAngle)) * 0.4;
+        const secondHandY = r * p.sin(p.radians(secondAngle)) * 0.4;
+
+        p.fill('lightgrey')
+        p.circle(r * p.cos(p.radians(253)) * 0.4, r * p.sin(p.radians(263)) * 0.4, 70)
+        p.fill('white')
+        p.strokeWeight(0)
+        p.circle(r * p.cos(p.radians(253)) * 0.4, r * p.sin(p.radians(263)) * 0.4 - 15, 70)
+        this.secondHand.drawNewHand(p, secondAngle, secondHandX, secondHandY);
+        console.log(secondAngle)
+        p.fill('yellow')
+        p.strokeWeight(2)
+        p.circle(r * p.cos(p.radians(59)) * 0.4, r * p.sin(p.radians(59)) * 0.4 - 15, 70)
+
+
     }
 
     private drawClockFace(p: p5, r: number) {
@@ -68,12 +89,44 @@ class Clock implements IClock {
         p.strokeWeight(2);
         p.fill(255);
         p.ellipse(this.centerX, this.centerY, r);
+
+        const numHourMarkers = 12;
+        const numMinuteMarkersBetweenHours = 4; // Each hour has 4 markers between large hour markers
+        const numMinuteMarkersPerHour = numMinuteMarkersBetweenHours + 1; // Each hour has 5 minute markers (including the large hour marker)
+        const numMinuteMarkers = numHourMarkers * numMinuteMarkersPerHour;
+
+        const outerBreakLength = r * 0.5; // Length of the outer end of the 5-minute break markers (touching the edge of the circle)
+        const innerBreakLength = r * 0.48; // Length of the inner end of the 5-minute break markers
+        const innerBreakLength2 = r * 0.45; // Length of the inner end of the 5-minute break markers
+
+        for (let i = 0; i < numHourMarkers; i++) {
+            const hourAngle = p.radians(i * (360 / numHourMarkers));
+            const mx1 = this.centerX + outerBreakLength * p.cos(hourAngle);
+            const my1 = this.centerY + outerBreakLength * p.sin(hourAngle);
+            const mx2 = this.centerX + innerBreakLength2 * p.cos(hourAngle);
+            const my2 = this.centerY + innerBreakLength2 * p.sin(hourAngle);
+            p.strokeWeight(4)
+            p.line(mx1, my1, mx2, my2);
+
+            // Draw minute markers between the large hour markers
+            for (let j = 1; j <= numMinuteMarkersBetweenHours; j++) {
+                const minuteAngle = p.radians(i * (360 / numHourMarkers) + j * (360 / numMinuteMarkers));
+                const mx1 = this.centerX + outerBreakLength * p.cos(minuteAngle);
+                const my1 = this.centerY + outerBreakLength * p.sin(minuteAngle);
+                const mx2 = this.centerX + innerBreakLength * p.cos(minuteAngle);
+                const my2 = this.centerY + innerBreakLength * p.sin(minuteAngle);
+
+                p.strokeWeight(2)
+                p.line(mx1, my1, mx2, my2);
+            }
+        }
     }
 }
 
+
 class HourHand {
     private static STROKE_COLOR = [255, 0, 0]; // RGB color (red)
-    private static STROKE_WEIGHT = 4;
+    private static STROKE_WEIGHT = 8;
     private static HAND_LENGTH_RATIO = 0.2;
 
     /**
@@ -83,10 +136,12 @@ class HourHand {
      * @param {number} hourAngle - The angle (in degrees) of the hour hand.
      * @param {number} r - The radius of the clock.
      */
+
     draw(p: p5, hourAngle: number, r: number) {
         p.push();
         p.rotate(p.radians(hourAngle));
         p.stroke(HourHand.STROKE_COLOR[0], HourHand.STROKE_COLOR[1], HourHand.STROKE_COLOR[2]);
+        p.stroke('black')
         p.strokeWeight(HourHand.STROKE_WEIGHT);
         p.line(0, 0, r * HourHand.HAND_LENGTH_RATIO, 0);
         p.pop();
@@ -97,7 +152,8 @@ class MinuteHand {
     draw(p: p5, minuteAngle: number, r: number) {
         p.push();
         p.rotate(p.radians(minuteAngle));
-        p.stroke(0, 0, 255);
+        // p.stroke(0, 0, 255);
+        p.stroke('black');
         p.strokeWeight(3);
         p.line(0, 0, r * 0.3, 0);
         p.pop();
@@ -111,12 +167,23 @@ class SecondHand {
         this.previousAngle = 0;
     }
 
-    draw(p: p5, secondAngle: number, r: number) {
+    draw(p5: p5, secondAngle: number, r: number) {
+        p5.push();
+        p5.rotate(p5.radians(secondAngle));
+        p5.stroke('black');
+        p5.strokeWeight(2);
+        p5.pop();
+    }
+
+    drawNewHand(p: p5, secondAngle: number, x: number, y: number) {
         p.push();
-        p.rotate(p.radians(secondAngle));
-        p.stroke(0, 255, 0);
+
+        p.stroke('black');
         p.strokeWeight(2);
-        p.line(0, 0, r * 0.4, 0);
+        p.noFill()
+        // p.circle(x, y, 70);
+        p.circle(x, y, 90);
+
         p.pop();
     }
 }
