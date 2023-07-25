@@ -1,6 +1,6 @@
 import { type Sketch } from "@p5-wrapper/react";
-import Background from "./background";
-import Clock from "./drawClock";
+import Background from "./components/background";
+import Clock from "./components/Clock";
 
 const Sketch: Sketch = (p5) => {
 
@@ -33,21 +33,10 @@ const Sketch: Sketch = (p5) => {
         p5.push();
         p5.translate(centerX, centerY);
         p5.rotate(p5.radians(-90)); // Rotate by -90 degrees
-
-        // Draw the clock
         clock.draw(p5, time); // Pass 0, 0 as the center coordinates since the rotation is already applied
         p5.pop();
 
-        // Draw the white circle with a black stroke at the center of the canvas
-        p5.push();
-        p5.fill('white');
-        p5.stroke('white');
-        p5.strokeWeight(2);
-        // p5.circle(centerX, centerY, 200);
-        p5.pop();
-
-        // Increment the color interpolation
-        colorInterpolation += 0.001;
+        colorInterpolation += 0.0001;
     };
     p5.windowResized = () => {
         p5.resizeCanvas(p5.windowWidth, p5.windowHeight);
