@@ -27,7 +27,7 @@ const Sketch: Sketch = (p5) => {
         // time.setSeconds(second);
 
         // Draw the background
-        Background(p5, colorInterpolation, p5.color(255, 0, 255), p5.color(0, 255, 0));
+        Background(p5, colorInterpolation, p5.color(0, 0, 0), p5.color(0, 255, 0));
 
         // Translate and rotate the canvas to draw the clock at the center
         p5.push();
